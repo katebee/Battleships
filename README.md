@@ -1,5 +1,3 @@
-# Battlessssships
+# Battleships
 
-## A game.
-
-Python version of battleships.  
+Slightly odd version of battleships, written in Python.
