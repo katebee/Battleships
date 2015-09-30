@@ -1,128 +1,238 @@
+__author__ = 'Admin'
+import re
 from random import randint
 
-board = []
-for x in range(5):
-    board.append(["O"] * 5)
 
-player = [] # Stores where the player is positioned and AI fire
-for x in range(5):
-    player.append(["O"] * 5)
-    
-def print_board(grid):
-    for row in grid:
-        print " ".join(row)
+class Player(object):
+    def __init__(self, player_name):
+        self.name = player_name
+        self.human = False
+        self.private_board = self.generate_empty_board()  # makes a [] Add an integer to g_e_b to specify size of board
+        self.visible_board = self.generate_empty_board()  # call this one to show other player
+        self.active_ships = 0
+        self.guessed_row = 0
+        self.guessed_col = 0
 
-print "Let's play Battleship!"
-print_board(board)
-print # Formatting space for reading ease of player
+    @staticmethod
+    def generate_empty_board():
+        board = [[" "]]
+        for col in range(1, ocean_size + 1):
+            board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
+        for row in range(1, ocean_size + 1):
+            board.append(["O"] * ocean_size)
+            board[row].insert(0, str(row))      # Adds row numbers, also solves downstream user input vs. zero-base
+        return board
 
-def random_row(board):
-    return randint(0, len(board) - 1)
-
-def random_col(board):
-    return randint(0, len(board[0]) - 1)
-
-# New function for hiding player ship
-# Future versions to include cheat or god mode
-print "Please decide the position of your battleship:"
-while True:
-    try:
-        player_row = int(raw_input("Row:")) - 1
-        if 0 <= player_row <= 5:
-            break
-        else:
-            print "That's not even in the ocean..."
-    except ValueError:
-        print "That is not a valid coordinate!"
-
-while True:
-    try:
-        player_col = int(raw_input("Col:")) - 1
-        if 0 <= player_col <= 5:
-            break
-        else:
-            print "That's not even in the ocean..."
-    except ValueError:
-        print "That is not a valid coordinate!"
-    
-player[player_row][player_col] = "X"
-# print_board(player)
-
-###########################################################
-
-print "Positioning my battleship..."
-ship_row = random_row(board)
-ship_col = random_col(board)
-
-# debugging mode!!! Edit this out before beta release!!
-print ship_row + 1, ship_col + 1
-
-for turn in range(1, 5):
-    print "Turn", turn
-    while True:
-        try:
-            guess_row = int(raw_input("Guess Row:")) - 1
-            break
-        except ValueError:
-            print "That is not a valid coordinate!"
-    while True:
-        try:
-            guess_col = int(raw_input("Guess Col:")) - 1
-            break
-        except ValueError:
-            print "That is not a valid coordinate!"
-    if guess_row == ship_row and guess_col == ship_col:
-        board[ship_row][ship_col] = "X"
-        print "Congratulations! You sunk my battleship!"
-        print_board(board)
-        break
-    else:
-        if (guess_row < 0 or guess_row > 4) or (guess_col < 0 or guess_col > 4):
-            print "Oops, that's not even in the ocean."
-        elif(board[guess_row][guess_col] == "-"):
-            print "You guessed that one already."
-            
-        elif (guess_row == ship_row) and (guess_col == ship_col + 1 or guess_col == ship_col - 1):
-            print "That was close... However, you missed my battleship!"
-            board[guess_row][guess_col] = "-"
-        elif (guess_col == ship_col) and (guess_row == ship_row + 1 or guess_row == ship_row - 1):
-            print "That was close... However, you missed my battleship!"
-            board[guess_row][guess_col] = "-"
-        elif (guess_row == ship_row + 1 or guess_row == ship_row - 1) and (guess_col == ship_col + 1) or (guess_col == ship_col - 1):
-            print "That was close... However, you missed my battleship!"
-            board[guess_row][guess_col] = "-"
-        else:
-            print "You missed my battleship!"
-            board[guess_row][guess_col] = "-"
-            
-    if turn % 3 == 0: # add fuction for return volley after x player turns
-        print "Returning random fire!" 
-        def hit_continue(Prompt="(Hit any key to continue)"):
-            raw_input(Prompt)
-        
-        count = 0
-        while count < 3:
-            fire_row = randint(0, len(board[0]) - 1)
-            fire_col = randint(0, len(board[0]) - 1)
-            print "Firing at: %s, %s" % (fire_row, fire_col)
-
-            if fire_row == player_row and fire_col == player_col:
-                print "I hit your battleship! I win!"
-                break
-            else:
-                print "It appears I missed..."
-                player[fire_row][fire_col] = "-"
-                count += 1
-        print_board(player)
-        print "Your turn!"
-        
-# Lose condition does not terminate game
-    if turn == 7:
-        print "GAME OVER - YOU LOSE"
-        board[ship_row][ship_col] = "X"
-        print "Here is where my battleship was hidden:"
-        print_board(board)
-        break
-    else:
-        print_board(board)
+    @staticmethod
+    def print_board(grid):
         print
+        for row in grid:
+            print " ".join(row)
+        print
+
+    def guess_row(self):
+        if self.human:  # version 3.0 should check if human or AI
+            while True:
+                try:
+                    self.guessed_row = int(raw_input("Guess Row: "))
+                    break
+                except ValueError:
+                    print "That is not a valid coordinate!"
+        else:
+            self.guessed_row = randint(0, len(self.private_board))
+
+    def guess_col(self):
+        if self.human:  # version 3.0 should check if human or AI
+            while True:
+                try:
+                    self.guessed_col = int(raw_input("Guess Col: "))
+                    break
+                except ValueError:
+                    print "That is not a valid coordinate!"
+        else:
+            self.guessed_col = randint(0, len(self.private_board))
+
+    def survival_check(self):
+        if self.active_ships == 0:
+            print "That was the last battleship!"
+            return False
+        else:
+            return True
+
+
+class HumanPlayer(Player):
+    def __init__(self, player_name):
+        super(HumanPlayer, self).__init__(player_name)
+        self.human = True
+
+    def check_player_name(self):
+        name_check = True
+        while name_check:
+            player_name = raw_input('What is your name? ')
+            player_name = player_name.strip()
+            if not re.match("^[A-Za-z]*$", player_name):
+                print "Error! Only letters a-z allowed!"
+            elif len(player_name) > 15:
+                print "Error! Only 15 characters allowed!"
+            elif player_name == "":
+                self.name = "Anon"
+                name_check = False
+            else:
+                self.name = player_name
+                name_check = False
+        print "Hi " + self.name + "! Let's play Battleship!"
+
+    def position_ship(self):
+        print "Please decide the position of your battleship"
+        collision_check = True  # check that no ship is already there
+        while collision_check:
+            row_check = True
+            col_check = True
+            while row_check:
+                try:
+                    position_row = int(raw_input("Row: "))
+                    if 1 <= position_row <= 5:
+                        row_check = False
+                    else:
+                        print "That's not even in the ocean..."
+                except ValueError:
+                    print "That is not a valid coordinate!"
+            while col_check:
+                try:
+                    position_col = int(raw_input("Col: "))
+                    if 1 <= position_col <= 5:
+                        col_check = False
+                    else:
+                        print "That's not even in the ocean..."
+                except ValueError:
+                    print "That is not a valid coordinate!"
+            if self.private_board[position_row][position_col] == "X":
+                print "there is already a ship at this location!"
+            else:
+                print "Ship positioned at %d:%d " % (position_row, position_col)
+                self.private_board[position_row][position_col] = "X"
+                self.active_ships += 1
+                collision_check = False
+
+    def position_fleet(self, fleet=1):
+        print "The ocean is a {0} by {0} grid".format(ocean_size)
+        if fleet > 1:
+            print "you have %d ships" % fleet
+        else:
+            print "you have %d ship" % fleet
+        for ship in range(fleet):
+            self.position_ship()
+
+    def check_target_location(self, opponent):
+        if opponent.private_board[self.guessed_row][self.guessed_col] == "X":  # could just ref ocean size
+            opponent.visible_board[self.guessed_row][self.guessed_col] = "X"
+            print "Congratulations! You sunk my battleship!"
+            opponent.print_board(opponent.visible_board)
+            opponent.active_ships -= 1
+        else:
+            if (self.guessed_row < 1 or self.guessed_row > 5) or (self.guessed_col < 1 or self.guessed_col > 5):
+                print "Oops, that's not even in the ocean."
+            elif opponent.visible_board[self.guessed_row][self.guessed_col] == "-":
+                print "You guessed that one already."
+            else:
+                print "You missed my battleship!"
+                opponent.visible_board[self.guessed_row][self.guessed_col] = "-"
+
+
+class ComputerPlayer(Player):
+    def __init__(self, player_name):
+        super(ComputerPlayer, self).__init__(player_name)
+        self.human = False
+
+    def position_fleet(self, fleet):
+        if fleet > 1:
+            print "%d enemy ships detected!" % fleet
+        else:
+            print "%d enemy ship detected!" % fleet
+        for ship in range(fleet):
+            self.position_ship()
+
+    def random_row(self):  # combine these into just picking a random number from range(1, ocean_size)
+        return randint(1, ocean_size)
+
+    def random_col(self):
+        return randint(1, ocean_size)
+
+    def position_ship(self):
+        position_row = self.random_row()
+        position_col = self.random_col()
+        if self.private_board[position_row][position_col] == "X":
+            self.position_ship()
+        else:
+            # print "Ship positioned at %d:%d " % (player_row + 1, player_col + 1)
+            self.private_board[position_row][position_col] = "X"
+            self.active_ships += 1
+
+
+# ocean should be a new object?
+def set_ocean_size(size):
+    global ocean_size
+    ocean_size = size
+
+
+set_ocean_size(5)
+# ocean size should be able to be adjusted and have downstream effects.
+# Need to check ocean size when placing ships, and when selecting attack site.
+
+
+
+
+
+
+
+# add functions to determine size of the ocean and number of ships each player has?
+# Expand game options to larger ocean and more ships in later iterations?
+
+def attack(active_player, opponent):
+    attack_phase = True
+    while attack_phase:
+        active_player.guess_row()
+        active_player.guess_col()
+        active_player.check_target_location(opponent)
+        opponent.survival_check()
+        #print_board(opponent['visible_board'])
+        attack_phase = False
+
+
+def game_in_play():
+    while player_1.survival_check():
+        for turn in range(1, 5):
+            print "TURN", turn
+
+            attack(active_player=player_1, opponent=player_2)
+            # attack(active_player=player_2, opponent=player_1)
+
+
+
+
+
+
+# ############ GAME START #######################################
+
+# take player name and generate player and AI
+player_1 = HumanPlayer('Player 1')
+player_2 = ComputerPlayer('Computer')
+# add something to indicate the size of the ocean / row col count
+# you have x ships and the ocean is y * z
+
+#  place ships
+player_1.check_player_name()
+player_1.position_fleet(fleet=2)
+player_1.print_board(player_1.private_board)
+
+player_2.position_fleet(fleet=2)
+player_2.print_board(player_2.visible_board)
+# show the player their board before commencing game
+
+# play game
+
+# AI positions battleship
+
+player_2.print_board(player_2.private_board)
+
+game_in_play()
