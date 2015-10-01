@@ -2,6 +2,11 @@ __author__ = 'Admin'
 import re
 from random import randint
 
+OCEAN_SIZE = 5
+
+class Game(object):
+    pass
+# move ocean, board, win/lose conditions here
 
 class Player(object):
     def __init__(self, player_name):
@@ -15,6 +20,7 @@ class Player(object):
 
     @staticmethod
     def generate_empty_board():
+        # linked lists
         board = [[" "]]
         for col in range(1, ocean_size + 1):
             board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
@@ -27,37 +33,29 @@ class Player(object):
     def print_board(grid):
         print
         for row in grid:
-            print " ".join(row)
+            print "p ".join(row)
         print
 
-    def guess_row(self):
+    def attack(self, opponent):
+        self.guess_row()
+        self.guess_col()
+        self.check_target_location(opponent)
+
+    def guess_coordinate(self, coordinate):
         if self.human:  # version 3.0 should check if human or AI
             while True:
                 try:
-                    self.guessed_row = int(raw_input("Guess Row: "))
-                    break
+                    return int(raw_input("Guess %s: " % coordinate)) 
                 except ValueError:
                     print "That is not a valid coordinate!"
         else:
-            self.guessed_row = randint(0, len(self.private_board))
+            return randint(0, len(self.private_board))
 
-    def guess_col(self):
-        if self.human:  # version 3.0 should check if human or AI
-            while True:
-                try:
-                    self.guessed_col = int(raw_input("Guess Col: "))
-                    break
-                except ValueError:
-                    print "That is not a valid coordinate!"
-        else:
-            self.guessed_col = randint(0, len(self.private_board))
+    def guess_location(self):
+        return (self.guess_coordinate("Row"), self.guess_coordinate("Col"))
 
-    def survival_check(self):
-        if self.active_ships == 0:
-            print "That was the last battleship!"
-            return False
-        else:
-            return True
+    def __nonzero__(self):
+        return bool(self.active_ships)
 
 
 class HumanPlayer(Player):
@@ -182,57 +180,42 @@ set_ocean_size(5)
 
 
 
-
-
-
 # add functions to determine size of the ocean and number of ships each player has?
 # Expand game options to larger ocean and more ships in later iterations?
 
-def attack(active_player, opponent):
-    attack_phase = True
-    while attack_phase:
-        active_player.guess_row()
-        active_player.guess_col()
-        active_player.check_target_location(opponent)
-        opponent.survival_check()
-        #print_board(opponent['visible_board'])
-        attack_phase = False
-
-
 def game_in_play():
-    while player_1.survival_check():
-        for turn in range(1, 5):
-            print "TURN", turn
-
-            attack(active_player=player_1, opponent=player_2)
-            # attack(active_player=player_2, opponent=player_1)
-
-
-
-
+    for turn in range(1, 5):
+        print "TURN", turn
+        player_1.attack(opponent=player_2)
+        if not player_2:
+            break
+        player_2.attack(opponent=player_1)
+        if not player_1:
+            break
 
 
 # ############ GAME START #######################################
 
-# take player name and generate player and AI
-player_1 = HumanPlayer('Player 1')
-player_2 = ComputerPlayer('Computer')
-# add something to indicate the size of the ocean / row col count
-# you have x ships and the ocean is y * z
+if __name__ == "__main__":
+    # take player name and generate player and AI
+    player_1 = HumanPlayer('Player 1')
+    player_2 = ComputerPlayer('Computer')
+    # add something to indicate the size of the ocean / row col count
+    # you have x ships and the ocean is y * z
 
-#  place ships
-player_1.check_player_name()
-player_1.position_fleet(fleet=2)
-player_1.print_board(player_1.private_board)
+    #  place ships
+    player_1.check_player_name()
+    player_1.position_fleet(fleet=2)
+    player_1.print_board(player_1.private_board)
 
-player_2.position_fleet(fleet=2)
-player_2.print_board(player_2.visible_board)
-# show the player their board before commencing game
+    player_2.position_fleet(fleet=2)
+    player_2.print_board(player_2.visible_board)
+    # show the player their board before commencing game
 
-# play game
+    # play game
 
-# AI positions battleship
+    # AI positions battleship
 
-player_2.print_board(player_2.private_board)
+    player_2.print_board(player_2.private_board)
 
-game_in_play()
+    game_in_play()
