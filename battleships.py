@@ -2,21 +2,14 @@ __author__ = 'Admin'
 import re
 from random import randint
 
-OCEAN_SIZE = 5
 
 class Game(object):
     pass
-# move ocean, board, win/lose conditions here
 
-class Player(object):
-    def __init__(self, player_name):
-        self.name = player_name
-        self.human = False
-        self.private_board = self.generate_empty_board()  # makes a [] Add an integer to g_e_b to specify size of board
-        self.visible_board = self.generate_empty_board()  # call this one to show other player
-        self.active_ships = 0
-        self.guessed_row = 0
-        self.guessed_col = 0
+    @staticmethod
+    def set_ocean_size(size):
+        global ocean_size
+        ocean_size = size
 
     @staticmethod
     def generate_empty_board():
@@ -33,26 +26,36 @@ class Player(object):
     def print_board(grid):
         print
         for row in grid:
-            print "p ".join(row)
+            print " ".join(row)
         print
 
-    def attack(self, opponent):
-        self.guess_row()
-        self.guess_col()
-        self.check_target_location(opponent)
+
+class Player(object):
+    def __init__(self, player_name):
+        self.name = player_name
+        self.human = False
+        self.private_board = Game.generate_empty_board()  # makes a [] Add an integer to g_e_b to specify size of board
+        self.visible_board = Game.generate_empty_board()  # call this one to show other player
+        self.active_ships = 0
+        self.guessed_row = 0
+        self.guessed_col = 0
 
     def guess_coordinate(self, coordinate):
-        if self.human:  # version 3.0 should check if human or AI
+        if self.human:
             while True:
                 try:
                     return int(raw_input("Guess %s: " % coordinate)) 
                 except ValueError:
                     print "That is not a valid coordinate!"
         else:
-            return randint(0, len(self.private_board))
+            return randint(1, ocean_size + 1)
 
     def guess_location(self):
-        return (self.guess_coordinate("Row"), self.guess_coordinate("Col"))
+        return (self.guess_coordinate("Row"), self.guess_coordinate("Col"))  # Returns a tuple to check
+
+    def attack(self, opponent):
+        coordinates = self.guess_location()
+        opponent.check_target_location(*coordinates)
 
     def __nonzero__(self):
         return bool(self.active_ships)
@@ -121,20 +124,20 @@ class HumanPlayer(Player):
         for ship in range(fleet):
             self.position_ship()
 
-    def check_target_location(self, opponent):
-        if opponent.private_board[self.guessed_row][self.guessed_col] == "X":  # could just ref ocean size
-            opponent.visible_board[self.guessed_row][self.guessed_col] = "X"
-            print "Congratulations! You sunk my battleship!"
-            opponent.print_board(opponent.visible_board)
-            opponent.active_ships -= 1
+    def check_target_location(self, row, col):  # row and col will be passed as a tuple
+        if self.private_board[row][col] == "X":
+            self.visible_board[row][col] = "X"
+            print "Congratulations! You sunk my battleship!"  # return hit?
+            Game.print_board(self.visible_board)
+            self.active_ships -= 1
         else:
-            if (self.guessed_row < 1 or self.guessed_row > 5) or (self.guessed_col < 1 or self.guessed_col > 5):
+            if (row < 1 or row > 5) or (col < 1 or col > 5):
                 print "Oops, that's not even in the ocean."
-            elif opponent.visible_board[self.guessed_row][self.guessed_col] == "-":
+            elif self.visible_board[row][col] == "-":
                 print "You guessed that one already."
             else:
                 print "You missed my battleship!"
-                opponent.visible_board[self.guessed_row][self.guessed_col] = "-"
+                self.visible_board[row][col] = "-"
 
 
 class ComputerPlayer(Player):
@@ -151,10 +154,10 @@ class ComputerPlayer(Player):
             self.position_ship()
 
     def random_row(self):  # combine these into just picking a random number from range(1, ocean_size)
-        return randint(1, ocean_size)
+        return randint(1, ocean_size + 1)
 
     def random_col(self):
-        return randint(1, ocean_size)
+        return randint(1, ocean_size + 1)
 
     def position_ship(self):
         position_row = self.random_row()
@@ -162,26 +165,31 @@ class ComputerPlayer(Player):
         if self.private_board[position_row][position_col] == "X":
             self.position_ship()
         else:
-            # print "Ship positioned at %d:%d " % (player_row + 1, player_col + 1)
             self.private_board[position_row][position_col] = "X"
             self.active_ships += 1
 
+    def check_target_location(self, row, col):  # row and col will be passed as a tuple
+        if self.visible_board[row][col] == "-":
+            pass  # computer should be allowed to know where it has guessed and guess again
+        if self.private_board[row][col] == "X":
+            self.visible_board[row][col] = "X"
+            print "COMPUTER: Congratulations! You sunk my battleship!"  # return hit?
+            Game.print_board(self.visible_board)
+            self.active_ships -= 1
+        else:
+            if (row < 1 or row > 5) or (col < 1 or col > 5):
+                print "COMPUTER: Oops, that's not even in the ocean."
+            elif
+                print "COMPUTER: You guessed that one already."
+            else:
+                print "COMPUTER: You missed my battleship!"
+                self.visible_board[row][col] = "-"
 
-# ocean should be a new object?
-def set_ocean_size(size):
-    global ocean_size
-    ocean_size = size
-
-
-set_ocean_size(5)
 # ocean size should be able to be adjusted and have downstream effects.
 # Need to check ocean size when placing ships, and when selecting attack site.
-
-
-
-
 # add functions to determine size of the ocean and number of ships each player has?
 # Expand game options to larger ocean and more ships in later iterations?
+
 
 def game_in_play():
     for turn in range(1, 5):
@@ -198,6 +206,8 @@ def game_in_play():
 
 if __name__ == "__main__":
     # take player name and generate player and AI
+    Game.set_ocean_size(5)
+    # game should initialise players
     player_1 = HumanPlayer('Player 1')
     player_2 = ComputerPlayer('Computer')
     # add something to indicate the size of the ocean / row col count
@@ -206,16 +216,16 @@ if __name__ == "__main__":
     #  place ships
     player_1.check_player_name()
     player_1.position_fleet(fleet=2)
-    player_1.print_board(player_1.private_board)
+    Game.print_board(player_1.private_board)
 
     player_2.position_fleet(fleet=2)
-    player_2.print_board(player_2.visible_board)
+    Game.print_board(player_2.visible_board)
     # show the player their board before commencing game
 
     # play game
 
     # AI positions battleship
 
-    player_2.print_board(player_2.private_board)
+    Game.print_board(player_2.private_board)
 
     game_in_play()
