@@ -154,10 +154,10 @@ class ComputerPlayer(Player):
             self.position_ship()
 
     def random_row(self):  # combine these into just picking a random number from range(1, ocean_size)
-        return randint(1, ocean_size + 1)
+        return randint(1, ocean_size)
 
     def random_col(self):
-        return randint(1, ocean_size + 1)
+        return randint(1, ocean_size)
 
     def position_ship(self):
         position_row = self.random_row()
@@ -179,7 +179,7 @@ class ComputerPlayer(Player):
         else:
             if (row < 1 or row > 5) or (col < 1 or col > 5):
                 print "COMPUTER: Oops, that's not even in the ocean."
-            elif
+            elif self.private_board[row][col] == "-":
                 print "COMPUTER: You guessed that one already."
             else:
                 print "COMPUTER: You missed my battleship!"
