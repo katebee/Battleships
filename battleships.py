@@ -1,5 +1,5 @@
 __author__ = 'Admin'
-import re
+import re  # used in check_player_name to check for allowed characters
 import overseer
 from random import randint
 
@@ -15,7 +15,7 @@ class Player(object):
 
     @staticmethod
     def generate_empty_board(ocean_size):
-        # linked lists
+        # this could use linked lists instead?
         board = [[" "]]
         for col in range(1, ocean_size + 1):
             board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
@@ -36,9 +36,12 @@ class Player(object):
 
     def attack(self, opponent):
         coordinates = self.guess_location()
-        overseer.check_target_location(opponent, *coordinates)
-        if overseer.check_target_location == "REPEAT":
+        target = overseer.check_repeat_target(opponent, *coordinates)
+        if target == "-" or target == "X":
             self.attack(opponent)
+
+        overseer.check_target_location(opponent, *coordinates)
+
         print "Missile fired at %d:%d!" % coordinates
 
 
@@ -73,7 +76,7 @@ class HumanPlayer(Player):
             while row_check:
                 try:
                     position_row = int(raw_input("Row: "))
-                    if 1 <= position_row <= 5:
+                    if 1 <= position_row <= overseer.ocean_size:
                         row_check = False
                     else:
                         print "That's not even in the ocean..."
@@ -82,7 +85,7 @@ class HumanPlayer(Player):
             while col_check:
                 try:
                     position_col = int(raw_input("Col: "))
-                    if 1 <= position_col <= 5:
+                    if 1 <= position_col <= overseer.ocean_size:
                         col_check = False
                     else:
                         print "That's not even in the ocean..."
@@ -104,15 +107,19 @@ class HumanPlayer(Player):
         for ship in range(fleet):
             self.position_ship()
 
-    def guess_coordinate(self, coordinate):
+    def guess_coordinate(self, coordinate_text):
         while True:
             try:
-                return int(raw_input("Guess %s: " % coordinate))
+                coordinate = int(raw_input("Guess %s: " % coordinate_text))
+                if 1 <= coordinate <= overseer.ocean_size:
+                    return coordinate
+                else:
+                    print "That's not even in the ocean..."
             except ValueError:
                 print "That is not a valid coordinate!"
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
-        if (row < 1 or row > 5) or (col < 1 or col > 5):
+        if (row < 1 or row > overseer.ocean_size) or (col < 1 or col > overseer.ocean_size):
             print "Oops, that's not even in the ocean."
         elif self.visible_board[row][col] == "-" or self.visible_board[row][col] == "X":
                 print "You guessed that one already."
