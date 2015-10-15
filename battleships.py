@@ -67,37 +67,33 @@ class HumanPlayer(Player):
                 name_check = False
         print "Hi " + self.name + "! Let's play Battleship!"
 
+    def collision_check(self, row, col):
+        if self.private_board[row][col] == "X":
+            print "There is already a ship at this location!"
+            return True
+        return False
+
     def position_ship(self):
-        print "Please decide the position of your battleship"
-        collision_check = True  # check that no ship is already there
-        while collision_check:
-            row_check = True
-            col_check = True
-            while row_check:
-                try:
-                    position_row = int(raw_input("Row: "))
-                    if 1 <= position_row <= overseer.ocean_size:
-                        row_check = False
-                    else:
-                        print "That's not even in the ocean..."
-                except ValueError:
-                    print "That is not a valid coordinate!"
-            while col_check:
-                try:
-                    position_col = int(raw_input("Col: "))
-                    if 1 <= position_col <= overseer.ocean_size:
-                        col_check = False
-                    else:
-                        print "That's not even in the ocean..."
-                except ValueError:
-                    print "That is not a valid coordinate!"
-            if self.private_board[position_row][position_col] == "X":
-                print "there is already a ship at this location!"
-            else:
-                print "Ship positioned at %d:%d " % (position_row, position_col)
-                self.private_board[position_row][position_col] = "X"
-                self.active_ships += 1
-                collision_check = False
+        row = self.get_coordinate("Row: ")  # check int and that it is in range (1 to ocean_size)
+        col = self.get_coordinate("Col: ")
+        if self.collision_check(row, col):
+            print "there is already a ship at this location!"
+            self.position_ship()
+        else:
+            print "Ship positioned at %d:%d " % (row, col)
+            self.private_board[row][col] = "X"
+            self.active_ships += 1
+
+    def get_coordinate(self, prompt):
+        while True:
+            try:
+                user_input = int(raw_input(prompt))
+                if 1 <= user_input <= 5:
+                    return user_input
+                else:
+                    print "That's not even in the ocean... Please enter a number from 1 to %s!" % overseer.ocean_size
+            except ValueError:
+                print "That is not a number!"
 
     def position_fleet(self, fleet):
         if fleet > 1:
@@ -116,10 +112,10 @@ class HumanPlayer(Player):
                 else:
                     print "That's not even in the ocean..."
             except ValueError:
-                print "That is not a valid coordinate!"
+                print "That is not a number!"
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
-        if (row < 1 or row > overseer.ocean_size) or (col < 1 or col > overseer.ocean_size):
+        if (1 > row > overseer.ocean_size) or (1 > col > overseer.ocean_size):
             print "Oops, that's not even in the ocean."
         elif self.visible_board[row][col] == "-" or self.visible_board[row][col] == "X":
                 print "You guessed that one already."
@@ -152,7 +148,7 @@ class ComputerPlayer(Player):
             self.active_ships += 1
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
-        if (row < 1 or row > 5) or (col < 1 or col > 5):
+        if (1 > row > overseer.ocean_size) or (1 > col > overseer.ocean_size):
             print "COMPUTER: Oops, that's not even in the ocean."
         elif self.visible_board[row][col] == "-" or self.visible_board[row][col] == "X":
             print "COMPUTER: You guessed that one already."
