@@ -1,33 +1,52 @@
 
+class Game(object):
+    def __init__(self, ocean_size, fleet_size, max_turns):
+        self.ocean_size = ocean_size
+        self.fleet_size = fleet_size
+        self.max_turns = max_turns
 
-def new_game(size_ocean, size_fleet, turn_max):
-    global ocean_size
-    global fleet_size
-    global max_turns
-    ocean_size = size_ocean
-    fleet_size = size_fleet
-    max_turns = turn_max
-
-
-def declare_ocean_size():
-        print "The ocean is a {0} by {0} grid".format(ocean_size)
+    def declare_ocean_size(self):
+            print "The ocean is a {0} by {0} grid".format(self.ocean_size)
 
 
-def declare_active_ships(player):
+def declare_active_ships(player, fleet_size):
         if player.active_ships > 1:
             print "%d enemy ships detected! \n" % fleet_size
         else:
             print "%d enemy ship detected! \n" % fleet_size
 
 
-def print_board(grid):
+class Board(object):
+    def __init__(self, board_name):
+        self.board_name = board_name
+
+    @staticmethod
+    def generate_empty_board(ocean_size):
+        # this could use linked lists instead?
+        board = [[" "]]
+        for col in range(1, ocean_size + 1):
+            board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
+        for row in range(1, ocean_size + 1):
+            board.append(["O"] * ocean_size)
+            board[row].insert(0, str(row))      # Adds row numbers, also solves downstream user input vs. zero-base
+        return board
+
+    @staticmethod
+    def print_board(board):
+        print
+        for row in board:
+            print " ".join(row)
+        print
+
+
+def print_board(board):
     print
-    for row in grid:
+    for row in board:
         print " ".join(row)
     print
 
 
-def game_in_play(player_1, player_2):
+def game_in_play(player_1, player_2, max_turns):
     for turn in range(1, max_turns + 1):
         print_board(player_2.visible_board)
         print "TURN", turn
@@ -40,16 +59,7 @@ def game_in_play(player_1, player_2):
             break
 
 
-def start_game(player_1, player_2):
-    declare_ocean_size()
-    print_board(player_1.private_board)
-    player_1.position_fleet(fleet_size)
-    print_board(player_1.private_board)
-    player_2.position_fleet(fleet_size)
-    declare_active_ships(player_2)
-
-
-def run_game(player_1, player_2):
+def run_game(player_1, player_2, max_turns):
     while not check_game_over((player_1, player_2)):
         for turn in range(1, max_turns + 1):
             print "TURN", turn
@@ -60,24 +70,6 @@ def run_game(player_1, player_2):
 
 def check_repeat_target(player, row, col):  # row and col will be passed as a tuple and will be in range
     return player.visible_board[row][col]
-
-
-def check_target_location(player, row, col):
-        if (row < 1 or row > ocean_size) or (col < 1 or col > ocean_size):
-            # That's not even in the ocean...
-            return False
-        elif player.visible_board[row][col] == "-" or player.visible_board[row][col] == "X":
-            # You guessed that one already
-            return "REPEAT"
-        elif player.private_board[row][col] == "X":
-            # Hit!
-            player.visible_board[row][col] = "X"
-            player.active_ships -= 1
-            return True
-        else:
-            # Missed
-            player.visible_board[row][col] = "-"
-            return False
 
 
 def current_turn(player, opponent):
