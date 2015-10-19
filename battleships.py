@@ -37,14 +37,16 @@ class Player(object):
     def guess_location(self):
         return (self.get_coordinate("Guess Row: "), self.get_coordinate("Guess Col: "))  # Returns a tuple to check
 
+    def repeat_location_check(self, row, col):  # row and col will be passed as a tuple and will be in range
+        return self.visible_board[row][col]
+
     def attack(self, opponent):
         coordinates = self.guess_location()
-        target = overseer.check_repeat_target(opponent, *coordinates)
+        target = opponent.repeat_location_check(*coordinates)
         if target == "-" or target == "X":
             self.attack(opponent)
-        self.check_target_location(opponent, *coordinates)
-
         print "Missile fired at %d:%d!" % coordinates
+        opponent.check_target_location(*coordinates)
 
 
 class HumanPlayer(Player):
@@ -174,7 +176,7 @@ if __name__ == "__main__":
     overseer.print_board(player_1.private_board)
 
     player_1.position_fleet(game.fleet_size)
-    overseer.print_board(player_1.private_board)
+    # overseer.print_board(player_1.private_board)
 
     player_2.position_fleet(fleet_size=game.fleet_size)
     overseer.declare_active_ships(player=player_2, fleet_size=game.fleet_size)

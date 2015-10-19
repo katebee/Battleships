@@ -68,10 +68,6 @@ def run_game(player_1, player_2, max_turns):
         break
 
 
-def check_repeat_target(player, row, col):  # row and col will be passed as a tuple and will be in range
-    return player.visible_board[row][col]
-
-
 def current_turn(player, opponent):
     print_board(opponent.visible_board)
     player.attack(opponent)
