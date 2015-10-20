@@ -10,8 +10,8 @@ import overseer
 class Player(object):
     def __init__(self, player_name):
         self.name = player_name
-        self.private_board = self.generate_empty_board(game.ocean_size)
-        self.visible_board = self.generate_empty_board(game.ocean_size)  # call this one to show other player
+        self.private_board = overseer.Board(game.ocean_size)
+        self.visible_board = overseer.Board(game.ocean_size)  # call this one to show other player
         self.active_ships = 0
         self.guessed_row = 0
         self.guessed_col = 0
