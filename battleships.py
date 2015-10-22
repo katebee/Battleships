@@ -53,6 +53,7 @@ def all_ships_destroyed(player):
 def declare_winner(player):
     print "That was the last battleship..."
     print player.name.upper() + " WINS!"
+    quit()
 
 
 # ############ GAME START #######################################
