@@ -4,29 +4,19 @@ import re  # used in check_player_name to check for allowed characters
 
 from random import randint
 
-import overseer
 import config
+import overseer
+import board
 
 
 class Player(object):
     def __init__(self, player_name):
         self.name = player_name
-        self.private_board = overseer.Board(config.ocean_size)
-        self.visible_board = overseer.Board(config.ocean_size)  # call this one to show other player
+        self.private_board = board.Board(config.ocean_size)
+        self.visible_board = board.Board(config.ocean_size)  # call this one to show other player
         self.active_ships = 0
         self.guessed_row = 0
         self.guessed_col = 0
-
-    @staticmethod
-    def generate_empty_board(ocean_size):
-        # this could use linked lists instead?
-        board = [[" "]]
-        for col in range(1, ocean_size + 1):
-            board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
-        for row in range(1, ocean_size + 1):
-            board.append(["O"] * ocean_size)
-            board[row].insert(0, str(row))      # Adds row numbers, also solves downstream user input vs. zero-base
-        return board
 
     @staticmethod
     def random_location():

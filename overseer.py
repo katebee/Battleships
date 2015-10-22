@@ -16,34 +16,6 @@ def declare_active_ships(player, fleet_size):
             print "%d enemy ship detected! \n" % fleet_size
 
 
-class Board(object):
-    def __init__(self, ocean_size):
-        self.board = self._generate_empty_board(ocean_size=ocean_size)
-
-    def _generate_empty_board(self, ocean_size):
-        # this could use linked lists instead?
-        board = [[" "]]
-        for col in range(1, ocean_size + 1):
-            board[0].append(str(col))           # Adds col numbers, also solves downstream user input vs. zero-base
-        for row in range(1, ocean_size + 1):
-            board.append(["O"] * ocean_size)
-            board[row].insert(0, str(row))      # Adds row numbers, also solves downstream user input vs. zero-base
-        return board
-
-    def print_board(self):
-        print
-        for row in self.board:
-            print " ".join(row)
-        print
-
-
-def print_board(board):
-    print
-    for row in board:
-        print " ".join(row)
-    print
-
-
 def game_in_play(player_1, player_2, max_turns):
     for turn in range(1, max_turns + 1):
         player_2.visible_board.print_board()
