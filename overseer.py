@@ -46,12 +46,12 @@ def print_board(board):
 
 def game_in_play(player_1, player_2, max_turns):
     for turn in range(1, max_turns + 1):
-        print_board(player_2.visible_board)
+        player_2.visible_board.print_board()
         print "TURN", turn
         player_1.attack(opponent=player_2)
         if not player_2:
             break
-        print_board(player_2.visible_board)
+        player_2.visible_board.print_board()
         player_2.attack(opponent=player_1)
         if not player_1:
             break
@@ -67,7 +67,7 @@ def run_game(player_1, player_2, max_turns):
 
 
 def current_turn(player, opponent):
-    print_board(opponent.visible_board)
+    opponent.visible_board.print_board()
     player.attack(opponent)
 
 

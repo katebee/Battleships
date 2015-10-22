@@ -5,13 +5,14 @@ import re  # used in check_player_name to check for allowed characters
 from random import randint
 
 import overseer
+import config
 
 
 class Player(object):
     def __init__(self, player_name):
         self.name = player_name
-        self.private_board = overseer.Board(game.ocean_size)
-        self.visible_board = overseer.Board(game.ocean_size)  # call this one to show other player
+        self.private_board = overseer.Board(config.ocean_size)
+        self.visible_board = overseer.Board(config.ocean_size)  # call this one to show other player
         self.active_ships = 0
         self.guessed_row = 0
         self.guessed_col = 0
@@ -29,7 +30,7 @@ class Player(object):
 
     @staticmethod
     def random_location():
-        return randint(1, game.ocean_size)
+        return randint(1, config.ocean_size)
 
     def get_coordinate(self, prompt):
         return self.random_location()
@@ -38,7 +39,7 @@ class Player(object):
         return (self.get_coordinate("Guess Row: "), self.get_coordinate("Guess Col: "))  # Returns a tuple to check
 
     def repeat_location_check(self, row, col):  # row and col will be passed as a tuple and will be in range
-        return self.visible_board[row][col]
+        return self.visible_board.board[row][col]
 
     def attack(self, opponent):
         coordinates = self.guess_location()
@@ -71,7 +72,7 @@ class HumanPlayer(Player):
         print "Hi " + self.name + "! Let's play Battleship!"
 
     def collision_check(self, row, col):
-        if self.private_board[row][col] == "X":
+        if self.private_board.board[row][col] == "X":
             print "There is already a ship at this location!"
             return True
         return False
@@ -85,17 +86,17 @@ class HumanPlayer(Player):
             self.position_ship()
         else:
             print "Ship positioned at %d:%d " % (row, col)
-            self.private_board[row][col] = "X"
+            self.private_board.board[row][col] = "X"
             self.active_ships += 1
 
     def get_coordinate(self, prompt):  # overrides the random number generator from the player class
         while True:
             try:
                 user_input = int(raw_input(prompt))
-                if 1 <= user_input <= game.ocean_size:
+                if 1 <= user_input <= config.ocean_size:
                     return user_input
                 else:
-                    print "That's not even in the ocean... Please enter a number from 1 to %s!" % game.ocean_size
+                    print "That's not even in the ocean... Please enter a number from 1 to %s!" % config.ocean_size
             except ValueError:
                 print "That is not a number!"
 
@@ -108,18 +109,18 @@ class HumanPlayer(Player):
             self.position_ship()
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
-        if (1 > row > game.ocean_size) or (1 > col > game.ocean_size):
+        if (1 > row > config.ocean_size) or (1 > col > config.ocean_size):
             print "Oops, that's not even in the ocean."
-        elif self.visible_board[row][col] == "-" or self.visible_board[row][col] == "X":
+        elif self.visible_board.board[row][col] == "-" or self.visible_board.board[row][col] == "X":
                 print "You guessed that one already."
-        elif self.private_board[row][col] == "X":
-            self.visible_board[row][col] = "X"
+        elif self.private_board.board[row][col] == "X":
+            self.visible_board.board[row][col] = "X"
             print "A battleship was hit!"  # return hit?
-            overseer.print_board(self.visible_board)
+            self.visible_board.print_board()
             self.active_ships -= 1
         else:
             print "You missed my battleship!"
-            self.visible_board[row][col] = "-"
+            self.visible_board.board[row][col] = "-"
 
 
 class ComputerPlayer(Player):
@@ -133,25 +134,25 @@ class ComputerPlayer(Player):
     def position_ship(self):
         row = self.random_location()
         col = self.random_location()
-        if self.private_board[row][col] == "X":
+        if self.private_board.board[row][col] == "X":
             self.position_ship()
         else:
-            self.private_board[row][col] = "X"
+            self.private_board.board[row][col] = "X"
             self.active_ships += 1
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
-        if (1 > row > game.ocean_size) or (1 > col > game.ocean_size):
+        if (1 > row > config.ocean_size) or (1 > col > config.ocean_size):
             print "COMPUTER: Oops, that's not even in the ocean."
-        elif self.visible_board[row][col] == "-" or self.visible_board[row][col] == "X":
+        elif self.visible_board.board[row][col] == "-" or self.visible_board.board[row][col] == "X":
             print "COMPUTER: You guessed that one already."
-        elif self.private_board[row][col] == "X":
-            self.visible_board[row][col] = "X"
+        elif self.private_board.board[row][col] == "X":
+            self.visible_board.board[row][col] = "X"
             print "COMPUTER: Congratulations! You sunk my battleship!"  # return hit?
-            overseer.print_board(self.visible_board)
+            self.visible_board.print_board()
             self.active_ships -= 1
         else:
             print "COMPUTER: You missed my battleship!"
-            self.visible_board[row][col] = "-"
+            self.visible_board.board[row][col] = "-"
 
 
 # ocean size should be able to be adjusted and have downstream effects.
@@ -164,7 +165,7 @@ class ComputerPlayer(Player):
 
 if __name__ == "__main__":
     # create a new game
-    game = overseer.Game(ocean_size=5, fleet_size=2, max_turns=5)
+    game = overseer.Game(ocean_size=config.ocean_size, fleet_size=config.fleet_size, max_turns=config.max_turns)
 
     # initialise players
     player_1 = HumanPlayer('Human')
@@ -173,12 +174,12 @@ if __name__ == "__main__":
 
     # start game - position ships and declare ocean and fleet size
     game.declare_ocean_size()
-    overseer.print_board(player_1.private_board)
+    player_1.private_board.print_board()
 
     player_1.position_fleet(game.fleet_size)
     # overseer.print_board(player_1.private_board)
 
-    player_2.position_fleet(fleet_size=game.fleet_size)
-    overseer.declare_active_ships(player=player_2, fleet_size=game.fleet_size)
+    player_2.position_fleet(fleet_size=config.fleet_size)
+    overseer.declare_active_ships(player=player_2, fleet_size=config.fleet_size)
 
     overseer.run_game(player_1, player_2, max_turns=game.max_turns)
