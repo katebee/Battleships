@@ -34,8 +34,9 @@ class Player(object):
         target = opponent.repeat_location_check(*coordinates)
         if target == "-" or target == "X":
             self.attack(opponent)
-        print "Missile fired at %d:%d!" % coordinates
-        opponent.check_target_location(*coordinates)
+        else:
+            print "Missile fired at %d:%d!" % coordinates
+            opponent.check_target_location(*coordinates)
 
 
 class HumanPlayer(Player):
@@ -98,16 +99,16 @@ class HumanPlayer(Player):
 
     def check_target_location(self, row, col):  # row and col will be passed as a tuple
         if (1 > row > config.ocean_size) or (1 > col > config.ocean_size):
-            print "Oops, that's not even in the ocean."
+            print "...Oops, that's not even in the ocean."
         elif self.visible_board.board[row][col] == "-" or self.visible_board.board[row][col] == "X":
-                print "You guessed that one already."
+                print "...You guessed that one already."
         elif self.private_board.board[row][col] == "X":
             self.visible_board.board[row][col] = "X"
-            print "A battleship was hit!"  # return hit?
+            print "...A battleship was hit!"  # return hit?
             self.visible_board.print_board()
             self.active_ships -= 1
         else:
-            print "You missed my battleship!"
+            print "...It missed!"
             self.visible_board.board[row][col] = "-"
 
 
